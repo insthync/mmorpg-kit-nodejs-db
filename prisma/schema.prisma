@@ -1,0 +1,357 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model migrations {
+  migrationId String @id @db.VarChar(50)
+
+  @@map("__migrations")
+}
+
+model buildings {
+  id              String   @id @db.VarChar(50)
+  parentId        String   @default("") @db.VarChar(50)
+  entityId        Int      @default(0)
+  currentHp       Int      @default(0)
+  remainsLifeTime Float    @default(0) @db.Float
+  mapName         String   @db.VarChar(50)
+  positionX       Float    @default(0) @db.Float
+  positionY       Float    @default(0) @db.Float
+  positionZ       Float    @default(0) @db.Float
+  rotationX       Float    @default(0) @db.Float
+  rotationY       Float    @default(0) @db.Float
+  rotationZ       Float    @default(0) @db.Float
+  isLocked        Boolean  @default(false)
+  lockPassword    String   @default("") @db.VarChar(6)
+  creatorId       String   @default("") @db.VarChar(50)
+  creatorName     String   @default("") @db.VarChar(32)
+  extraData       String   @db.Text
+  createAt        DateTime @default(now()) @db.Timestamp(0)
+  updateAt        DateTime @default(now()) @db.Timestamp(0)
+}
+
+model characterattribute {
+  id          String   @id @db.VarChar(50)
+  idx         Int
+  characterId String   @db.VarChar(50)
+  dataId      Int      @default(0)
+  amount      Int      @default(0)
+  createAt    DateTime @default(now()) @db.Timestamp(0)
+  updateAt    DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([idx], map: "idx")
+}
+
+model characterbuff {
+  id                  String   @id @db.VarChar(50)
+  characterId         String   @db.VarChar(50)
+  type                Int      @default(0) @db.UnsignedTinyInt
+  dataId              Int      @default(0)
+  level               Int      @default(1)
+  buffRemainsDuration Float    @default(0) @db.Float
+  createAt            DateTime @default(now()) @db.Timestamp(0)
+  updateAt            DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+}
+
+model charactercurrency {
+  id          String   @id @db.VarChar(50)
+  idx         Int
+  characterId String   @db.VarChar(50)
+  dataId      Int      @default(0)
+  amount      Int      @default(0)
+  createAt    DateTime @default(now()) @db.Timestamp(0)
+  updateAt    DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([idx], map: "idx")
+}
+
+model characterhotkey {
+  id          String   @id @db.VarChar(50)
+  characterId String   @db.VarChar(50)
+  hotkeyId    String   @db.VarChar(50)
+  type        Int      @default(0) @db.UnsignedTinyInt
+  relateId    String   @db.VarChar(50)
+  createAt    DateTime @default(now()) @db.Timestamp(0)
+  updateAt    DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([hotkeyId], map: "hotkeyId")
+}
+
+model characteritem {
+  id                  String   @id @db.VarChar(50)
+  idx                 Int
+  inventoryType       Int      @default(0) @db.UnsignedTinyInt
+  characterId         String   @db.VarChar(50)
+  dataId              Int      @default(0)
+  level               Int      @default(1)
+  amount              Int      @default(0)
+  equipSlotIndex      Int      @default(0) @db.UnsignedTinyInt
+  durability          Float    @default(0) @db.Float
+  exp                 Int      @default(0)
+  lockRemainsDuration Float    @default(0) @db.Float
+  expireTime          BigInt   @default(0)
+  randomSeed          Int      @default(0) @db.UnsignedTinyInt
+  ammo                Int      @default(0)
+  sockets             String   @db.Text
+  createAt            DateTime @default(now()) @db.Timestamp(0)
+  updateAt            DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([idx], map: "idx")
+  @@index([inventoryType], map: "inventoryType")
+}
+
+model characterquest {
+  id             String   @id @db.VarChar(50)
+  idx            Int
+  characterId    String   @db.VarChar(50)
+  dataId         Int      @default(0)
+  isComplete     Boolean  @default(false)
+  isTracking     Boolean  @default(false)
+  killedMonsters String   @db.Text
+  completedTasks String   @db.Text
+  createAt       DateTime @default(now()) @db.Timestamp(0)
+  updateAt       DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([idx], map: "idx")
+}
+
+model characters {
+  id               String   @id @db.VarChar(50)
+  userId           String   @db.VarChar(50)
+  dataId           Int      @default(0)
+  entityId         Int      @default(0)
+  factionId        Int      @default(0)
+  characterName    String   @default("") @db.VarChar(32)
+  level            Int      @default(1)
+  exp              Int      @default(0)
+  currentHp        Int      @default(0)
+  currentMp        Int      @default(0)
+  currentStamina   Int      @default(0)
+  currentFood      Int      @default(0)
+  currentWater     Int      @default(0)
+  equipWeaponSet   Int      @default(0) @db.UnsignedTinyInt
+  statPoint        Float    @default(0) @db.Float
+  skillPoint       Float    @default(0) @db.Float
+  gold             Int      @default(0)
+  partyId          Int      @default(0)
+  guildId          Int      @default(0)
+  guildRole        Int      @default(0)
+  sharedGuildExp   Int      @default(0)
+  currentMapName   String   @default("") @db.VarChar(50)
+  currentPositionX Float    @default(0) @db.Float
+  currentPositionY Float    @default(0) @db.Float
+  currentPositionZ Float    @default(0) @db.Float
+  currentRotationX Float    @default(0) @db.Float
+  currentRotationY Float    @default(0) @db.Float
+  currentRotationZ Float    @default(0) @db.Float
+  respawnMapName   String   @default("") @db.VarChar(50)
+  respawnPositionX Float    @default(0) @db.Float
+  respawnPositionY Float    @default(0) @db.Float
+  respawnPositionZ Float    @default(0) @db.Float
+  mountDataId      Int      @default(0)
+  lastDeadTime     BigInt   @default(0)
+  unmuteTime       BigInt   @default(0)
+  createAt         DateTime @default(now()) @db.Timestamp(0)
+  updateAt         DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([factionId], map: "factionId")
+  @@index([guildId], map: "guildId")
+  @@index([partyId], map: "partyId")
+  @@index([userId], map: "userId")
+}
+
+model characterskill {
+  id          String   @id @db.VarChar(50)
+  idx         Int
+  characterId String   @db.VarChar(50)
+  dataId      Int      @default(0)
+  level       Int      @default(1)
+  createAt    DateTime @default(now()) @db.Timestamp(0)
+  updateAt    DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+  @@index([idx], map: "idx")
+}
+
+model characterskillusage {
+  id                      String   @id @db.VarChar(50)
+  characterId             String   @db.VarChar(50)
+  type                    Int      @default(0) @db.UnsignedTinyInt
+  dataId                  Int      @default(0)
+  level                   Int      @default(1)
+  coolDownRemainsDuration Float    @default(0) @db.Float
+  createAt                DateTime @default(now()) @db.Timestamp(0)
+  updateAt                DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+}
+
+model charactersummon {
+  id                    String   @id @db.VarChar(50)
+  characterId           String   @db.VarChar(50)
+  type                  Int      @default(0) @db.UnsignedTinyInt
+  dataId                Int      @default(0)
+  summonRemainsDuration Float    @default(0) @db.Float
+  level                 Int      @default(0)
+  exp                   Int      @default(0)
+  currentHp             Int      @default(0)
+  currentMp             Int      @default(0)
+  createAt              DateTime @default(now()) @db.Timestamp(0)
+  updateAt              DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId], map: "characterId")
+}
+
+model friend {
+  id           Int      @id @default(autoincrement())
+  characterId1 String   @db.VarChar(50)
+  characterId2 String   @db.VarChar(50)
+  createAt     DateTime @default(now()) @db.Timestamp(0)
+  updateAt     DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([characterId1], map: "characterId1")
+  @@index([characterId2], map: "characterId2")
+}
+
+model guild {
+  id                 Int     @id @default(autoincrement())
+  guildName          String  @db.VarChar(32)
+  leaderId           String  @db.VarChar(50)
+  level              Int     @default(1)
+  exp                Int     @default(0)
+  skillPoint         Int     @default(0)
+  guildMessage       String  @default("") @db.VarChar(160)
+  guildMessage2      String  @default("") @db.VarChar(160)
+  gold               Int     @default(0)
+  score              Int     @default(0)
+  options            String  @db.Text
+  autoAcceptRequests Boolean @default(false)
+  rank               Int     @default(0)
+  currentMembers     Int     @default(0)
+  maxMembers         Int     @default(0)
+
+  @@index([leaderId], map: "leaderId")
+}
+
+model guildrole {
+  guildId            Int
+  guildRole          Int
+  name               String  @db.VarChar(50)
+  canInvite          Boolean
+  canKick            Boolean
+  shareExpPercentage Int
+
+  @@id([guildId, guildRole])
+}
+
+model guildskill {
+  guildId Int
+  dataId  Int
+  level   Int
+
+  @@id([guildId, dataId])
+}
+
+model mail {
+  id              BigInt    @id @default(autoincrement())
+  eventId         String    @db.VarChar(50)
+  senderId        String    @db.VarChar(50)
+  senderName      String    @db.VarChar(32)
+  receiverId      String    @db.VarChar(50)
+  title           String    @db.VarChar(160)
+  content         String    @db.Text
+  gold            Int       @default(0)
+  cash            Int       @default(0)
+  currencies      String    @db.Text
+  items           String    @db.Text
+  isRead          Boolean   @default(false)
+  readTimestamp   DateTime? @db.Timestamp(0)
+  isClaim         Boolean   @default(false)
+  claimTimestamp  DateTime? @db.Timestamp(0)
+  isDelete        Boolean   @default(false)
+  deleteTimestamp DateTime? @db.Timestamp(0)
+  sentTimestamp   DateTime  @default(now()) @db.Timestamp(0)
+
+  @@index([eventId], map: "eventId")
+  @@index([isClaim], map: "isClaim")
+  @@index([isDelete], map: "isDelete")
+  @@index([isRead], map: "isRead")
+  @@index([receiverId], map: "receiverId")
+  @@index([senderId], map: "senderId")
+  @@index([senderName], map: "senderName")
+}
+
+model party {
+  id        Int     @id @default(autoincrement())
+  shareExp  Boolean
+  shareItem Boolean
+  leaderId  String  @db.VarChar(50)
+
+  @@index([leaderId], map: "leaderId")
+}
+
+model storageitem {
+  id                  String   @id @db.VarChar(50)
+  idx                 Int
+  storageType         Int      @default(0) @db.UnsignedTinyInt
+  storageOwnerId      String   @db.VarChar(50)
+  dataId              Int      @default(0)
+  level               Int      @default(1)
+  amount              Int      @default(0)
+  durability          Float    @default(0) @db.Float
+  exp                 Int      @default(0)
+  lockRemainsDuration Float    @default(0) @db.Float
+  expireTime          BigInt   @default(0)
+  randomSeed          Int      @default(0) @db.UnsignedTinyInt
+  ammo                Int      @default(0)
+  sockets             String   @db.Text
+  createAt            DateTime @default(now()) @db.Timestamp(0)
+  updateAt            DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([idx], map: "idx")
+  @@index([storageOwnerId], map: "storageOwnerId")
+  @@index([storageType], map: "storageType")
+}
+
+model summonbuffs {
+  id                  String   @id @db.VarChar(50)
+  characterId         String   @db.VarChar(50)
+  buffId              String   @db.VarChar(50)
+  type                Int      @default(0) @db.UnsignedTinyInt
+  dataId              Int      @default(0)
+  level               Int      @default(1)
+  buffRemainsDuration Float    @default(0) @db.Float
+  createAt            DateTime @default(now()) @db.Timestamp(0)
+  updateAt            DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([buffId], map: "buffId")
+  @@index([characterId], map: "characterId")
+}
+
+model userlogin {
+  id              String   @id @db.VarChar(50)
+  username        String   @unique(map: "username") @db.VarChar(32)
+  password        String   @db.VarChar(72)
+  gold            Int      @default(0)
+  cash            Int      @default(0)
+  email           String   @default("") @db.VarChar(50)
+  isEmailVerified Boolean  @default(false)
+  authType        Int      @default(1) @db.UnsignedTinyInt
+  accessToken     String   @default("") @db.VarChar(36)
+  userLevel       Int      @default(0) @db.UnsignedTinyInt
+  unbanTime       BigInt   @default(0)
+  createAt        DateTime @default(now()) @db.Timestamp(0)
+  updateAt        DateTime @default(now()) @db.Timestamp(0)
+}
