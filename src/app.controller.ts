@@ -1,7 +1,8 @@
 import { Controller, Res, Get, Post, Body, Param } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { FastifyReply } from 'fastify'
-import { nanoid } from 'nanoid'
+import { FastifyReply } from 'fastify';
+import { nanoid } from 'nanoid';
+import * as prisma from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as Responses from './responses';
 
@@ -115,7 +116,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('userId') userId: string
   ) {
-    const userLogin = await this.appService.userlogin.findFirst({
+    const userLogin = await this.appService.userlogin.findUnique({
       where :{
         id: userId
       },
@@ -129,7 +130,7 @@ export class AppController {
     }
     res.status(200).send({
       userLevel: userLogin.userLevel
-    } as Responses.GetUserLevelResp);
+    } as Responses.UserLevelResp);
   }
 
   @Get('v1/users/:userId/gold')
@@ -137,7 +138,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('userId') userId: string
   ) {
-    const userLogin = await this.appService.userlogin.findFirst({
+    const userLogin = await this.appService.userlogin.findUnique({
       where :{
         id: userId
       },
@@ -151,7 +152,7 @@ export class AppController {
     }
     res.status(200).send({
       gold: userLogin.gold
-    } as Responses.GetGoldResp);
+    } as Responses.GoldResp);
   }
 
   @Post('v1/update-user-gold')
@@ -179,7 +180,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('userId') userId: string
   ) {
-    const userLogin = await this.appService.userlogin.findFirst({
+    const userLogin = await this.appService.userlogin.findUnique({
       where :{
         id: userId
       },
@@ -193,7 +194,7 @@ export class AppController {
     }
     res.status(200).send({
       cash: userLogin.cash
-    } as Responses.GetCashResp);
+    } as Responses.CashResp);
   }
 
   @Post('v1/update-user-cash')
@@ -221,7 +222,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('userId') userId: string
   ) {
-    const userLogin = await this.appService.userlogin.findFirst({
+    const userLogin = await this.appService.userlogin.findUnique({
       where :{
         id: userId
       },
@@ -235,7 +236,7 @@ export class AppController {
     }
     res.status(200).send({
       unbanTime: userLogin.unbanTime
-    } as Responses.GetUnbanTimeResp);
+    } as Responses.UnbanTimeResp);
   }
 
   @Post('v1/update-user-unban-time')
@@ -254,7 +255,7 @@ export class AppController {
     }
     const userLogin = await this.appService.userlogin.update({
       where: {
-        id: character.id
+        id: character.userId
       },
       data: {
         unbanTime: data.unbanTime
@@ -410,7 +411,16 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterName: string }
   ) {
-
+    const characters = await this.appService.characters.findMany({
+      where: {
+        characterName: {
+          contains: data.characterName
+        }
+      }
+    });
+    res.status(200).send({
+      characters: characters
+    } as Responses.CharactersResp);
   }
 
   @Post('v1/create-friend')
@@ -418,7 +428,13 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { id1: string, id2: string }
   ) {
-
+    await this.appService.friend.create({
+      data: { 
+        characterId1: data.id1, 
+        characterId2: data.id2 
+      }
+    });
+    res.status(200).send();
   }
 
   @Post('v1/delete-friend')
@@ -426,7 +442,13 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { id1: string, id2: string }
   ) {
-
+    await this.appService.friend.deleteMany({
+      where: { 
+        characterId1: data.id1, 
+        characterId2: data.id2 
+      }
+    });
+    res.status(200).send();
   }
 
   @Get('v1/characters/:characterId/friends')
@@ -434,7 +456,28 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('characterId') characterId: string
   ) {
-
+    const friends = await this.appService.friend.findMany({
+      where: {
+        characterId1: characterId
+      },
+      select: {
+        characterId2: true
+      }
+    });
+    const friendIds = new Array<string>();
+    friends.forEach(friend => {
+      friendIds.push(friend.characterId2);
+    });
+    const characters = await this.appService.characters.findMany({
+      where: {
+        id: {
+          in: friendIds
+        }
+      }
+    });
+    res.status(200).send({
+      characters: characters
+    } as Responses.CharactersResp);
   }
 
   @Post('v1/read-character-id')
@@ -442,7 +485,18 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterName: string }
   ) {
-
+    const character = await this.appService.characters.findFirst({
+      where: {
+        characterName: data.characterName
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send({
+      characterId: character.id,
+    } as Responses.CharacterIdResp);
   }
 
   @Post('v1/read-user-id')
@@ -450,16 +504,30 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterName: string }
   ) {
-
+    const character = await this.appService.characters.findFirst({
+      where: {
+        characterName: data.characterName
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send({
+      userId: character.userId,
+    } as Responses.UserIdResp);
   }
 
   // Building
   @Post('v1/create-building')
   async createBuilding(
     @Res() res: FastifyReply,
-    @Body() data: { mapName: string, building: any }
+    @Body() data: prisma.buildings
   ) {
-
+    await this.appService.buildings.create({
+      data: data
+    })
+    res.status(200).send();
   }
 
   @Post('v1/read-buildings')
@@ -467,23 +535,43 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { mapName: string }
   ) {
-
+    const buildings = await this.appService.buildings.findMany({
+      where: {
+        mapName: data.mapName
+      }
+    });
+    await res.status(200).send({
+      buildings: buildings
+    } as Responses.BuildingsResp);
   }
 
   @Post('v1/update-building')
   async updateBuilding(
     @Res() res: FastifyReply,
-    @Body() data: { mapName: string, building: any }
+    @Body() data: prisma.buildings
   ) {
-
+    await this.appService.buildings.delete({
+      where: {
+        id: data.id
+      }
+    });
+    await this.appService.buildings.create({
+      data: data
+    })
+    res.status(200).send();
   }
 
   @Post('v1/delete-building')
   async deleteBuilding(
     @Res() res: FastifyReply,
-    @Body() data: { mapName: string, buildingId: string }
+    @Body() data: { buildingId: string }
   ) {
-
+    await this.appService.buildings.delete({
+      where: {
+        id: data.buildingId
+      }
+    });
+    res.status(200).send();
   }
 
   // Party
@@ -492,7 +580,22 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { shareExp: boolean, shareItem: boolean, leaderId: string }
   ) {
-
+    const party = await this.appService.party.create({
+      data: data
+    });
+    const character = await this.appService.characters.update({
+      where: {
+        id: data.leaderId
+      },
+      data: {
+        partyId: party.id
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/read-party')
@@ -500,7 +603,18 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { partyId: number }
   ) {
-
+    const party = await this.appService.party.findUnique({
+      where: {
+        id: data.partyId
+      }
+    })
+    if (!party) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      party: party
+    } as Responses.PartyResp);
   }
 
   @Post('v1/update-party-leader')
@@ -508,7 +622,28 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { partyId: number, leaderId: string }
   ) {
-
+    const character = await this.appService.characters.findUnique({
+      where: {
+        id: data.leaderId
+      }
+    })
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    const party = await this.appService.party.update({
+      where: {
+        id: data.partyId
+      },
+      data: {
+        leaderId: data.leaderId
+      }
+    });
+    if (!party) {
+      res.status(500).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-party')
@@ -516,7 +651,20 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { partyId: number, shareExp: boolean, shareItem: boolean }
   ) {
-
+    const party = await this.appService.party.update({
+      where: {
+        id: data.partyId
+      },
+      data: {
+        shareExp: data.shareExp,
+        shareItem: data.shareItem
+      }
+    });
+    if (!party) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/delete-party')
@@ -524,7 +672,12 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { partyId: number }
   ) {
-
+    await this.appService.party.delete({
+      where: {
+        id: data.partyId
+      }
+    });
+    res.status(200).send();
   }
 
   @Post('v1/update-character-party')
@@ -532,7 +685,28 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterId: string, partyId: number }
   ) {
-
+    const party = await this.appService.party.findUnique({
+      where: {
+        id: data.partyId
+      }
+    });
+    if (!party) {
+      res.status(500).send();
+      return;
+    }
+    const character = await this.appService.characters.update({
+      where: {
+        id: data.characterId
+      },
+      data: {
+        partyId: data.partyId
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   // Guild
@@ -684,26 +858,46 @@ export class AppController {
   @Post('v1/read-storage-items')
   async readStorageItems(
     @Res() res: FastifyReply,
-    @Body() data: { storageType: number, storageOwner: string }
+    @Body() data: { storageType: number, storageOwnerId: string }
   ) {
-
+    const storageItems = await this.appService.storageitem.findMany({
+      where: {
+        storageType: data.storageType,
+        storageOwnerId: data.storageOwnerId
+      }
+    });
+    res.status(200).send({
+      storageItems: storageItems
+    } as Responses.StorageItemsResp);
   }
 
   @Post('v1/update-storage-items')
   async updateStorageItems(
     @Res() res: FastifyReply,
-    @Body() data: { storageType: number, storageOwner: string, storageItems: Array<any> }
+    @Body() data: { storageType: number, storageOwnerId: string, storageItems: Array<prisma.storageitem> }
   ) {
-
+    await this.appService.storageitem.deleteMany({
+      where: {
+        storageType: data.storageType,
+        storageOwnerId: data.storageOwnerId
+      }
+    });
+    this.appService.storageitem.createMany({
+      data: data.storageItems
+    })
+    res.status(200).send();
   }
 
   // Mail
   @Post('v1/create-mail')
   async createMail(
     @Res() res: FastifyReply,
-    @Body() data: { mail: any }
+    @Body() data: prisma.mail
   ) {
-
+    await this.appService.mail.create({
+      data: data
+    })
+    res.status(200).send();
   }
 
   @Post('v1/read-mails')
@@ -711,39 +905,110 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { userId: string, onlyNewMails: boolean }
   ) {
-
+    const mails = await this.appService.mail.findMany({
+      where: {
+        receiverId: data.userId,
+        isDelete: false,
+      }
+    });
+    const filteredMails = new Array<prisma.mail>();
+    mails.forEach(mail => {
+      if (!mail.isClaim && (mail.gold > 0 || mail.currencies) || mail.items)
+        filteredMails.push(mail);
+      else if (!mail.isRead)
+        filteredMails.push(mail);
+    });
+    res.status(200).send({
+      mails: filteredMails
+    } as Responses.MailsResp);
   }
 
   @Post('v1/read-mail')
   async readMail(
     @Res() res: FastifyReply,
-    @Body() data: { userId: string, mailId: string }
+    @Body() data: { mailId: number }
   ) {
-
+    const mail = await this.appService.mail.findFirst({
+      where: {
+        id: data.mailId,
+      }
+    });
+    if (!mail) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      mail: mail
+    } as Responses.MailResp);
   }
 
   @Post('v1/update-read-mail-state')
   async updateReadMailState(
     @Res() res: FastifyReply,
-    @Body() data: { userId: string, mailId: string }
+    @Body() data: { mailId: number }
   ) {
-
+    const mail = await this.appService.mail.update({
+      where: {
+        id: data.mailId,
+      },
+      data: {
+        isRead: true,
+        readTimestamp: new Date()
+      }
+    });
+    if (!mail) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      mail: mail
+    } as Responses.MailResp);
   }
 
   @Post('v1/update-claim-mail-items-state')
   async updateClaimMailItemsState(
     @Res() res: FastifyReply,
-    @Body() data: { userId: string, mailId: string }
+    @Body() data: { mailId: number }
   ) {
-
+    const mail = await this.appService.mail.update({
+      where: {
+        id: data.mailId,
+      },
+      data: {
+        isClaim: true,
+        claimTimestamp: new Date()
+      }
+    });
+    if (!mail) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      mail: mail
+    } as Responses.MailResp);
   }
 
   @Post('v1/update-delete-mail-state')
   async updateDeleteMailState(
     @Res() res: FastifyReply,
-    @Body() data: { userId: string, mailId: string }
+    @Body() data: { mailId: number }
   ) {
-
+    const mail = await this.appService.mail.update({
+      where: {
+        id: data.mailId,
+      },
+      data: {
+        isDelete: true,
+        deleteTimestamp: new Date()
+      }
+    });
+    if (!mail) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      mail: mail
+    } as Responses.MailResp);
   }
 
   @Get('v1/users/:userId/mail-notification-count')
@@ -751,6 +1016,21 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('userId') userId: string
   ) {
-
+    const mails = await this.appService.mail.findMany({
+      where: {
+        receiverId: userId,
+        isDelete: false,
+      }
+    });
+    let count = 0;
+    mails.forEach(mail => {
+      if (!mail.isClaim && (mail.gold > 0 || mail.currencies) || mail.items)
+          count++;
+      else if (!mail.isRead)
+          count++;
+    });
+    res.status(200).send({
+      count: count
+    } as Responses.MailNotificationCountResp);
   }
 }
