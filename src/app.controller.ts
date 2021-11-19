@@ -117,7 +117,7 @@ export class AppController {
     @Param('userId') userId: string
   ) {
     const userLogin = await this.appService.userlogin.findUnique({
-      where :{
+      where: {
         id: userId
       },
       select: {
@@ -139,7 +139,7 @@ export class AppController {
     @Param('userId') userId: string
   ) {
     const userLogin = await this.appService.userlogin.findUnique({
-      where :{
+      where: {
         id: userId
       },
       select: {
@@ -181,7 +181,7 @@ export class AppController {
     @Param('userId') userId: string
   ) {
     const userLogin = await this.appService.userlogin.findUnique({
-      where :{
+      where: {
         id: userId
       },
       select: {
@@ -223,7 +223,7 @@ export class AppController {
     @Param('userId') userId: string
   ) {
     const userLogin = await this.appService.userlogin.findUnique({
-      where :{
+      where: {
         id: userId
       },
       select: {
@@ -429,9 +429,9 @@ export class AppController {
     @Body() data: { id1: string, id2: string }
   ) {
     await this.appService.friend.create({
-      data: { 
-        characterId1: data.id1, 
-        characterId2: data.id2 
+      data: {
+        characterId1: data.id1,
+        characterId2: data.id2
       }
     });
     res.status(200).send();
@@ -443,9 +443,9 @@ export class AppController {
     @Body() data: { id1: string, id2: string }
   ) {
     await this.appService.friend.deleteMany({
-      where: { 
-        characterId1: data.id1, 
-        characterId2: data.id2 
+      where: {
+        characterId1: data.id1,
+        characterId2: data.id2
       }
     });
     res.status(200).send();
@@ -715,15 +715,39 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildName: string }
   ) {
-
+    const count = await this.appService.guild.count({
+      where: {
+        guildName: data.guildName
+      }
+    });
+    if (count > 0) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/create-guild')
   async createGuild(
     @Res() res: FastifyReply,
-    @Body() data: { shareExp: boolean, shareItem: boolean, leaderId: string }
+    @Body() data: { guildName: string, leaderId: string, options: string }
   ) {
-
+    const guild = await this.appService.guild.create({
+      data: data
+    });
+    const character = await this.appService.characters.update({
+      where: {
+        id: data.leaderId
+      },
+      data: {
+        guildId: guild.id
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/read-guild')
@@ -731,7 +755,18 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number }
   ) {
-
+    const guild = await this.appService.guild.findUnique({
+      where: {
+        id: data.guildId
+      }
+    })
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send({
+      guild: guild
+    } as Responses.GuildResp);
   }
 
   @Post('v1/update-guild-level')
@@ -739,7 +774,21 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, level: number, exp: number, skillPoint: number }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        level: data.level,
+        exp: data.exp,
+        skillPoint: data.skillPoint
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-leader')
@@ -747,7 +796,28 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, leaderId: string }
   ) {
-
+    const character = await this.appService.characters.findUnique({
+      where: {
+        id: data.leaderId
+      }
+    })
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        leaderId: data.leaderId
+      }
+    });
+    if (!guild) {
+      res.status(500).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-message')
@@ -755,7 +825,19 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, guildMessage: string }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        guildMessage: data.guildMessage
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-message2')
@@ -763,7 +845,19 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, guildMessage2: string }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        guildMessage2: data.guildMessage2
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-score')
@@ -771,7 +865,19 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, score: number }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        score: data.score
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-options')
@@ -779,7 +885,19 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, options: string }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        options: data.options
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-auto-accept-requests')
@@ -787,23 +905,56 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number, autoAcceptRequests: boolean }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        autoAcceptRequests: data.autoAcceptRequests
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-rank')
   async updateGuildRank(
     @Res() res: FastifyReply,
-    @Body() data: { guildId: number, rank: string }
+    @Body() data: { guildId: number, rank: number }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        rank: data.rank
+      }
+    });
+    if (!guild) {
+      res.status(400).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-role')
   async updateGuildRole(
     @Res() res: FastifyReply,
-    @Body() data: { guildId: number, guildRole: number, name: string, canInvite: boolean, canKick: boolean, shareExpPercentage: number }
+    @Body() data: prisma.guildrole
   ) {
-
+    await this.appService.guildrole.deleteMany({
+      where: {
+        guildId: data.guildId,
+        guildRole: data.guildRole
+      }
+    });
+    await this.appService.guildrole.create({
+      data: data
+    });
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-member-role')
@@ -811,15 +962,36 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterId: string, guildRole: number }
   ) {
-
+    const character = await this.appService.characters.update({
+      where: {
+        id: data.characterId,
+      },
+      data: {
+        guildRole: data.guildRole
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Post('v1/update-guild-skill-level')
   async updateGuildSkillLevel(
     @Res() res: FastifyReply,
-    @Body() data: { guildId: number, skillDataId: number, skillLevel: number, skillPoint: number }
+    @Body() data: prisma.guildskill
   ) {
-
+    await this.appService.guildskill.deleteMany({
+      where: {
+        guildId: data.guildId,
+        dataId: data.dataId
+      }
+    });
+    await this.appService.guildskill.create({
+      data: data
+    });
+    res.status(200).send();
   }
 
   @Post('v1/delete-guild')
@@ -827,7 +999,12 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number }
   ) {
-
+    await this.appService.guild.delete({
+      where: {
+        id: data.guildId
+      }
+    });
+    res.status(200).send();
   }
 
   @Post('v1/update-character-guild')
@@ -835,7 +1012,29 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterId: string, guildId: number, guildRole: number }
   ) {
-
+    const guild = await this.appService.guild.findUnique({
+      where: {
+        id: data.guildId
+      }
+    });
+    if (!guild) {
+      res.status(500).send();
+      return;
+    }
+    const character = await this.appService.characters.update({
+      where: {
+        id: data.characterId
+      },
+      data: {
+        guildId: data.guildId,
+        guildRole: data.guildRole
+      }
+    });
+    if (!character) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   @Get('v1/guilds/:guildId/gold')
@@ -843,15 +1042,41 @@ export class AppController {
     @Res() res: FastifyReply,
     @Param('guildId') guildId: number
   ) {
-
+    const guild = await this.appService.guild.findUnique({
+      where: {
+        id: guildId
+      },
+      select: {
+        gold: true,
+      }
+    });
+    if (!guild) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send({
+      gold: guild.gold
+    } as Responses.GoldResp);
   }
 
   @Post('v1/update-guild-gold')
   async updateGuildGold(
     @Res() res: FastifyReply,
-    @Body() data: { guildId: number, amount: number }
+    @Body() data: { guildId: number, gold: number }
   ) {
-
+    const guild = await this.appService.guild.update({
+      where: {
+        id: data.guildId
+      },
+      data: {
+        gold: data.gold
+      }
+    });
+    if (!guild) {
+      res.status(404).send();
+      return;
+    }
+    res.status(200).send();
   }
 
   // Storage items
@@ -1025,9 +1250,9 @@ export class AppController {
     let count = 0;
     mails.forEach(mail => {
       if (!mail.isClaim && (mail.gold > 0 || mail.currencies) || mail.items)
-          count++;
+        count++;
       else if (!mail.isRead)
-          count++;
+        count++;
     });
     res.status(200).send({
       count: count
