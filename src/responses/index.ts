@@ -1,11 +1,19 @@
+export interface GetUserLevelResp {
+    userLevel: number
+}
+
 export interface GetGoldResp {
-    amount: number
+    gold: number
 }
 
 export interface GetCashResp {
-    amount: number
+    cash: number
 }
 
 export interface GetUnbanTimeResp {
-    unbanTime: number
+    unbanTime: bigint
+}
+
+export interface GetUnmuteTimeResp {
+    unmuteTime: bigint
 }
