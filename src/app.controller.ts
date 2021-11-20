@@ -395,15 +395,30 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterId: string }
   ) {
-
+    const summonBuffs = await this.appService.summonbuffs.findMany({
+      where: {
+        characterId: data.characterId
+      }
+    });
+    res.status(200).send({
+      summonBuffs: summonBuffs
+    } as Responses.SummonBuffsResp);
   }
 
   @Post('v1/update-summon-buffs')
   async updateSummonBuffs(
     @Res() res: FastifyReply,
-    @Body() data: { characterId: string, summonBuffs: Array<any> }
+    @Body() data: { characterId: string, summonBuffs: Array<prisma.summonbuffs> }
   ) {
-
+    await this.appService.summonbuffs.deleteMany({
+      where: {
+        characterId: data.characterId
+      }
+    });
+    this.appService.summonbuffs.createMany({
+      data: data.summonBuffs
+    })
+    res.status(200).send();
   }
 
   @Post('v1/find-characters')
@@ -677,6 +692,14 @@ export class AppController {
         id: data.partyId
       }
     });
+    await this.appService.characters.updateMany({
+      where: {
+        partyId: data.partyId
+      },
+      data: {
+        partyId: 0
+      }
+    })
     res.status(200).send();
   }
 
@@ -1004,6 +1027,26 @@ export class AppController {
         id: data.guildId
       }
     });
+    await this.appService.guildrole.deleteMany({
+      where: {
+        guildId: data.guildId
+      }
+    });
+    await this.appService.guildskill.deleteMany({
+      where: {
+        guildId: data.guildId
+      }
+    });
+    await this.appService.characters.updateMany({
+      where: {
+        guildId: data.guildId
+      },
+      data: {
+        guildId: 0,
+        guildRole: 0,
+        sharedGuildExp: 0,
+      }
+    })
     res.status(200).send();
   }
 

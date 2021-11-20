@@ -48,6 +48,10 @@ export interface CharactersResp {
     characters: Array<prisma.characters>
 }
 
+export interface SummonBuffsResp {
+    summonBuffs: Array<prisma.summonbuffs>
+}
+
 export interface BuildingsResp {
     buildings: Array<prisma.buildings>
 }
