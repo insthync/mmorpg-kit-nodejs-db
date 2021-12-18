@@ -1,7 +1,7 @@
 export enum InventoryType {
-    NonEquipItems,
-    EquipItems,
-    EquipWeaponRight,
-    EquipWeaponLeft,
-    StorageItems
+  NonEquipItems,
+  EquipItems,
+  EquipWeaponRight,
+  EquipWeaponLeft,
+  StorageItems,
 }

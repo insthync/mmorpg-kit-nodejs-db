@@ -1,65 +1,65 @@
 import * as prisma from '@prisma/client';
 
 export interface UserLevelResp {
-    userLevel: number
+  userLevel: number;
 }
 
 export interface GoldResp {
-    gold: number
+  gold: number;
 }
 
 export interface CashResp {
-    cash: number
+  cash: number;
 }
 
 export interface CharacterIdResp {
-    characterId: string
+  characterId: string;
 }
 
 export interface UserIdResp {
-    userId: string
+  userId: string;
 }
 
 export interface UnbanTimeResp {
-    unbanTime: bigint
+  unbanTime: bigint;
 }
 
 export interface UnmuteTimeResp {
-    unmuteTime: bigint
+  unmuteTime: bigint;
 }
 
 export interface PartyResp {
-    party: prisma.party
+  party: prisma.party;
 }
 
 export interface GuildResp {
-    guild: prisma.guild
+  guild: prisma.guild;
 }
 
 export interface MailResp {
-    mail: prisma.mail
+  mail: prisma.mail;
 }
 
 export interface MailNotificationCountResp {
-    count: number
+  count: number;
 }
 
 export interface CharactersResp {
-    characters: Array<prisma.characters>
+  characters: Array<prisma.characters>;
 }
 
 export interface SummonBuffsResp {
-    summonBuffs: Array<prisma.summonbuffs>
+  summonBuffs: Array<prisma.summonbuffs>;
 }
 
 export interface BuildingsResp {
-    buildings: Array<prisma.buildings>
+  buildings: Array<prisma.buildings>;
 }
 
 export interface StorageItemsResp {
-    storageItems: Array<prisma.storageitem>
+  storageItems: Array<prisma.storageitem>;
 }
 
 export interface MailsResp {
-    mails: Array<prisma.mail>
+  mails: Array<prisma.mail>;
 }
