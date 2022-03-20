@@ -365,7 +365,7 @@ export class AppController {
       characterSummons: prisma.charactersummon[];
     },
   ) {
-    await this.appService.$transaction([
+    await Promise.all([
       this.appService.characters.create({
         data: data.character,
       }),
@@ -419,7 +419,7 @@ export class AppController {
     for (let i = 0; i < characters.length; ++i) {
       const character = characters[i];
       const [characterAttributes, characterItems, characterSkills] =
-        await this.appService.$transaction([
+        await Promise.all([
           this.appService.characterattribute.findMany({
             where: {
               characterId: character.id,
@@ -470,7 +470,7 @@ export class AppController {
       characterSkillUsages,
       characterSummons,
       summonBuffs,
-    ] = await this.appService.$transaction([
+    ] = await Promise.all([
       this.appService.characters.findUnique({
         where: {
           id: data.characterId,
@@ -559,15 +559,8 @@ export class AppController {
       characterSummons: prisma.charactersummon[];
     },
   ) {
-    await this.appService.$transaction([
-      // Update character
-      this.appService.characters.update({
-        where: {
-          id: data.character.id,
-        },
-        data: data.character,
-      }),
-      // Delete relates data, then fills later
+    // Delete relates data, then fills later
+    await Promise.all([
       this.appService.characterattribute.deleteMany({
         where: {
           characterId: data.character.id,
@@ -613,7 +606,15 @@ export class AppController {
           characterId: data.character.id,
         },
       }),
-      // Fill relates data
+    ]);
+    // Update character and fill relates data
+    await Promise.all([
+      this.appService.characters.update({
+        where: {
+          id: data.character.id,
+        },
+        data: data.character,
+      }),
       this.appService.characterattribute.createMany({
         data: data.characterAttributes,
       }),
@@ -650,7 +651,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { userId: string; characterId: string },
   ) {
-    await this.appService.$transaction([
+    await Promise.all([
       this.appService.characters.delete({
         where: {
           id: data.characterId,
@@ -730,16 +731,14 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { characterId: string; summonBuffs: prisma.summonbuffs[] },
   ) {
-    await this.appService.$transaction([
-      this.appService.summonbuffs.deleteMany({
-        where: {
-          characterId: data.characterId,
-        },
-      }),
-      this.appService.summonbuffs.createMany({
-        data: data.summonBuffs,
-      }),
-    ]);
+    await this.appService.summonbuffs.deleteMany({
+      where: {
+        characterId: data.characterId,
+      },
+    });
+    await this.appService.summonbuffs.createMany({
+      data: data.summonBuffs,
+    });
     res.status(200).send();
   }
 
@@ -1006,7 +1005,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { partyId: number },
   ) {
-    await this.appService.$transaction([
+    await Promise.all([
       this.appService.party.delete({
         where: {
           id: data.partyId,
@@ -1341,7 +1340,7 @@ export class AppController {
     @Res() res: FastifyReply,
     @Body() data: { guildId: number },
   ) {
-    await this.appService.$transaction([
+    await Promise.all([
       this.appService.guild.delete({
         where: {
           id: data.guildId,
@@ -1470,7 +1469,7 @@ export class AppController {
       storageItems: prisma.storageitem[];
     },
   ) {
-    await this.appService.$transaction([
+    await Promise.all([
       this.appService.storageitem.deleteMany({
         where: {
           storageType: data.storageType,
