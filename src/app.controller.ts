@@ -434,10 +434,16 @@ export class AppController {
                 { inventoryType: Enums.InventoryType.EquipWeaponLeft },
               ],
             },
+            orderBy: {
+              idx: 'asc',
+            },
           }),
           this.appService.characterskill.findMany({
             where: {
               characterId: character.id,
+            },
+            orderBy: {
+              idx: 'asc',
             },
           }),
         ]);
@@ -500,15 +506,24 @@ export class AppController {
         where: {
           characterId: data.characterId,
         },
+        orderBy: {
+          idx: 'asc',
+        },
       }),
       this.appService.characterquest.findMany({
         where: {
           characterId: data.characterId,
         },
+        orderBy: {
+          idx: 'asc',
+        },
       }),
       this.appService.characterskill.findMany({
         where: {
           characterId: data.characterId,
+        },
+        orderBy: {
+          idx: 'asc',
         },
       }),
       this.appService.characterskillusage.findMany({
@@ -1452,6 +1467,9 @@ export class AppController {
       where: {
         storageType: data.storageType,
         storageOwnerId: data.storageOwnerId,
+      },
+      orderBy: {
+        idx: 'asc',
       },
     });
     res.status(200).send({

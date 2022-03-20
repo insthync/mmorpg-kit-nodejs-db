@@ -37,7 +37,6 @@ model buildings {
 
 model characterattribute {
   id          String   @id @db.VarChar(50)
-  idx         Int
   characterId String   @db.VarChar(50)
   dataId      Int      @default(0)
   amount      Int      @default(0)
@@ -45,7 +44,6 @@ model characterattribute {
   updateAt    DateTime @default(now()) @db.Timestamp(0)
 
   @@index([characterId], map: "characterId")
-  @@index([idx], map: "idx")
 }
 
 model characterbuff {
@@ -63,7 +61,6 @@ model characterbuff {
 
 model charactercurrency {
   id          String   @id @db.VarChar(50)
-  idx         Int
   characterId String   @db.VarChar(50)
   dataId      Int      @default(0)
   amount      Int      @default(0)
@@ -71,7 +68,6 @@ model charactercurrency {
   updateAt    DateTime @default(now()) @db.Timestamp(0)
 
   @@index([characterId], map: "characterId")
-  @@index([idx], map: "idx")
 }
 
 model characterhotkey {
